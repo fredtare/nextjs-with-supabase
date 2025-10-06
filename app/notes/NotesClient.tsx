@@ -35,15 +35,29 @@ export default function NotesClient({ initialNotes }: NotesClientProps) {
         body: JSON.stringify({ content: newNote.trim() }),
       });
 
+      // Log raw response for debugging
+      const rawText = await response.text();
+      console.log('Raw response:', rawText);
+
+      // Try parsing JSON
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        throw new Error('Invalid server response format');
+      }
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to add note');
+        throw new Error(data.error || `Failed to add note (status: ${response.status})`);
       }
 
       setNewNote('');
-      revalidatePath('/notes'); // Soft refresh: re-fetches server data without full reload
+      revalidatePath('/notes');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add note');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add note';
+      setError(errorMessage);
+      console.error('Add note error:', err);
     } finally {
       setLoading(false);
     }
@@ -58,11 +72,11 @@ export default function NotesClient({ initialNotes }: NotesClientProps) {
       const response = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete note');
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete note');
       }
 
-      revalidatePath('/notes'); // Soft refresh: re-fetches server data without full reload
+      revalidatePath('/notes');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete note');
     } finally {
@@ -73,10 +87,10 @@ export default function NotesClient({ initialNotes }: NotesClientProps) {
   return (
     <>
       {/* Add Note Form */}
-      <div className="mb-4">
+      <div className="mb-8 bg-white shadow-lg rounded-lg p-6">
         <textarea
           id="new-note"
-          className="w-full p-2 border rounded-md"
+          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 resize-none"
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
           placeholder="Write a new note..."
@@ -86,32 +100,43 @@ export default function NotesClient({ initialNotes }: NotesClientProps) {
         <button
           onClick={addNote}
           disabled={loading}
-          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+          className="mt-3 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 font-medium"
         >
           {loading ? 'Adding...' : 'Add Note'}
         </button>
       </div>
 
       {/* Error Message */}
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+      {error && (
+        <p className="text-red-600 bg-red-100 p-3 rounded-md mb-6 text-center font-medium">
+          {error}
+        </p>
+      )}
 
       {/* Notes List */}
       <div>
-        {loading && <p className="text-gray-500">Updating...</p>}
-        {notes.length === 0 && !loading && <p>No notes available.</p>}
-        <ul className="space-y-2">
+        {loading && (
+          <p className="text-gray-600 text-center">Updating...</p>
+        )}
+        {notes.length === 0 && !loading && (
+          <p className="text-gray-600 text-center">No notes available.</p>
+        )}
+        <ul className="space-y-4">
           {notes.map((note) => (
-            <li key={note.id} className="p-4 border rounded-md flex justify-between items-start">
+            <li
+              key={note.id}
+              className="p-6 bg-white shadow-md rounded-lg flex justify-between items-start hover:shadow-lg transition duration-200"
+            >
               <div>
-                <p>{note.content}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-gray-800">{note.content}</p>
+                <p className="text-sm text-gray-500 mt-1">
                   {new Date(note.created_at).toLocaleString()}
                 </p>
               </div>
               <button
                 onClick={() => deleteNote(note.id)}
                 disabled={loading}
-                className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-gray-400"
+                className="px-4 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 font-medium"
               >
                 Delete
               </button>

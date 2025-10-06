@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import NotesClient from './NotesClient'; // We'll create this next
+import NotesClient from './NotesClient';
 import { Suspense } from 'react';
 
 async function fetchNotes() {
@@ -20,9 +20,9 @@ export default async function NotesPage() {
   const notes = await fetchNotes();
 
   return (
-    <Suspense fallback={<p>Loading...</p>}>
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Notes App</h1>
+    <Suspense fallback={<div className="flex justify-center items-center h-screen"><p className="text-lg text-gray-600">Loading...</p></div>}>
+      <div className="container mx-auto p-6 max-w-3xl">
+        <h1 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">Notes App</h1>
         <NotesClient initialNotes={notes} />
       </div>
     </Suspense>
