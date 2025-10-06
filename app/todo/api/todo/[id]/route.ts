@@ -1,0 +1,28 @@
+import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
+
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+  console.log('DELETE /api/notes/', params.id, 'called');
+  try {
+    const supabase = await createClient();
+    console.log('Supabase client initialized');
+
+    const { id } = params;
+
+    const { error } = await supabase.from('notes').delete().eq('id', id);
+
+    if (error) {
+      console.error('Supabase delete error:', error);
+      return NextResponse.json({ error: 'Failed to delete note: ' + error.message }, { status: 500 });
+    }
+
+    console.log('Note deleted successfully');
+    return NextResponse.json({ message: 'Note deleted' }, { status: 200 });
+  } catch (err) {
+    console.error('API route error:', err);
+    return NextResponse.json(
+      { error: 'Server error: ' + (err instanceof Error ? err.message : 'Unknown error') },
+      { status: 500 }
+    );
+  }
+}
