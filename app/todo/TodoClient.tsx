@@ -30,7 +30,7 @@ export default function TodosClient({ initialTodos }: TodosClientProps) {
     setError(null);
 
     try {
-      const response = await fetch('/api/todos', {
+      const response = await fetch('/api/todo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ task: newTodo.trim() }),
@@ -58,6 +58,7 @@ export default function TodosClient({ initialTodos }: TodosClientProps) {
       }
 
       setNewTodo('');
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to add todo';
       setError(errorMessage);
@@ -73,7 +74,7 @@ export default function TodosClient({ initialTodos }: TodosClientProps) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/todos/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/todo/${id}`, { method: 'DELETE' });
 
       if (!response.ok) {
         const data = await response.json();
@@ -93,7 +94,7 @@ export default function TodosClient({ initialTodos }: TodosClientProps) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/todos/${id}`, {
+      const response = await fetch(`/api/todo/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_completed: !is_completed }),
@@ -103,6 +104,8 @@ export default function TodosClient({ initialTodos }: TodosClientProps) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to update todo');
       }
+
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update todo');
     } finally {

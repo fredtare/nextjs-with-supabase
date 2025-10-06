@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  console.log('DELETE /api/', params.id, 'called');
+  console.log('DELETE /api/note/', params.id, 'called');
   try {
     const supabase = await createClient();
     console.log('Supabase client initialized');

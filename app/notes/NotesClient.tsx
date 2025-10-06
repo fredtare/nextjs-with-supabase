@@ -29,31 +29,34 @@ export default function NotesClient({ initialNotes }: NotesClientProps) {
     setError(null);
 
     try {
-      const response = await fetch('/api/notes', {
+      const response = await fetch('/api/note', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: newNote.trim() }),
       });
 
-      // Log raw response for debugging
-      const rawText = await response.text();
-      console.log('Raw response:', rawText);
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      const contentType = response.headers.get('content-type') || '';
+      console.log('Content-Type:', contentType);
 
-      // Try parsing JSON
-      let data;
-      try {
-        data = JSON.parse(rawText);
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        throw new Error('Invalid server response format');
+      if (response.status >= 300 && response.status < 400) {
+        throw new Error(`Received redirect (status: ${response.status}) to ${response.headers.get('location') || 'unknown location'}`);
       }
 
+      if (!contentType.includes('application/json')) {
+        const rawText = await response.text();
+        console.log('Raw response:', rawText);
+        throw new Error(`Expected JSON, got ${contentType}: ${rawText.slice(0, 100)}...`);
+      }
+
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(data.error || `Failed to add note (status: ${response.status})`);
+        throw new Error(data?.error || `Failed to add note (status: ${response.status})`);
       }
 
       setNewNote('');
-      revalidatePath('/notes');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to add note';
       setError(errorMessage);
@@ -69,14 +72,13 @@ export default function NotesClient({ initialNotes }: NotesClientProps) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/note/${id}`, { method: 'DELETE' });
 
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to delete note');
       }
 
-      revalidatePath('/notes');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete note');
     } finally {
