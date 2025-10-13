@@ -1,4 +1,5 @@
 // __tests__/api/note.test.ts
+//kasutatud Groki abi
 import { createClient } from '@/lib/supabase/server';
 import { POST, GET, PATCH, DELETE } from './app/notes/api/routes';
 import { NextRequest, NextResponse } from 'next/server';

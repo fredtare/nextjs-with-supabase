@@ -1,3 +1,4 @@
+//kasutatud Groki abi
 import { createClient } from '@/lib/supabase/server';
 import NotesClient from './NotesClient';
 import { Suspense } from 'react';

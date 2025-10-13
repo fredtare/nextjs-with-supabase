@@ -1,4 +1,5 @@
 // __tests__/api/todo.test.ts
+//kasutatud Groki abi
 import { createClient } from '@/lib/supabase/server';
 import { POST, GET, PATCH, DELETE } from '@/app/api/todo/route';
 import { NextRequest, NextResponse } from 'next/server';

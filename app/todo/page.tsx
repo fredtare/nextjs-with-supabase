@@ -1,3 +1,4 @@
+//kasutatud Groki abi
 import { createClient } from '@/lib/supabase/server';
 import TodosClient from './TodoClient';
 import { Suspense } from 'react';
