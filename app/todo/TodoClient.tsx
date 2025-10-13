@@ -78,11 +78,11 @@ export default function TodosClient({ initialTodos }: TodosClientProps) {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to delete todo');
+        throw new Error(data.error || 'Failed to delete task');
       }
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete todo');
+      setError(err instanceof Error ? err.message : 'Failed to delete task');
     } finally {
       setLoading(false);
     }
