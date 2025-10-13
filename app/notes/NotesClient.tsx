@@ -14,7 +14,7 @@ interface NotesClientProps {
 
 export default function NotesClient({ initialNotes }: NotesClientProps) {
   const [notes, setNotes] = useState<Note[]>(initialNotes);
-const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [newNote, setNewNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +57,7 @@ const [editingNote, setEditingNote] = useState<Note | null>(null);
         throw new Error(data?.error || `Failed to add note (status: ${response.status})`);
       }
 
+      setNotes([data, ...notes]); // Add new note to state
       setNewNote('');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to add note';
@@ -67,7 +68,7 @@ const [editingNote, setEditingNote] = useState<Note | null>(null);
     }
   };
 
-  //note update
+  // Update a note
   const updateNote = async (id: string, content: string) => {
     if (!content.trim()) {
       setError('Note cannot be empty');
@@ -113,6 +114,7 @@ const [editingNote, setEditingNote] = useState<Note | null>(null);
         throw new Error(data.error || 'Failed to delete note');
       }
 
+      setNotes(notes.filter((note) => note.id !== id)); // Remove note from state
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete note');
     } finally {
@@ -132,7 +134,7 @@ const [editingNote, setEditingNote] = useState<Note | null>(null);
     setError(null);
   };
 
-return (
+  return (
     <>
       {/* Add Note Form */}
       <div className="mb-8 bg-white shadow-lg rounded-lg p-6">
