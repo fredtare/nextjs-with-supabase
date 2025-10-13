@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
     const supabase = createClient();
     const { data, error } = await supabase
-      .from('entries')
+      .from('mechs')
       .insert({ name: name.trim(), variant: variant.trim(), description: description.trim() })
       .select()
       .single();

@@ -1,30 +1,17 @@
 import { createClient } from '@/lib/supabase/server';
-import NotesClient from './ForceClient';
-import { Suspense } from 'react';
+import EntriesClient from './ForceClient'; // Adjust path
 
-async function fetchNotes() {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('notes')
+export default async function EntriesPage() {
+  const supabase = createClient();
+  const { data: entries, error } = await supabase
+    .from('mechs')
     .select('*')
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching notes:', error.message);
-    return [];
+    console.error('Error fetching mechs:', error);
+    return <div>Error loading entries</div>;
   }
-  return data || [];
-}
 
-export default async function NotesPage() {
-  const notes = await fetchNotes();
-
-  return (
-    <Suspense fallback={<div className="flex justify-center items-center h-screen"><p className="text-lg text-gray-600">Loading...</p></div>}>
-      <div className="container mx-auto p-6 max-w-3xl">
-        <h1 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">Notes App</h1>
-        <NotesClient initialNotes={notes} />
-      </div>
-    </Suspense>
-  );
+  return <EntriesClient initialEntries={entries || []} />;
 }
