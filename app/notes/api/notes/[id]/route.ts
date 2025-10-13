@@ -1,30 +1,45 @@
 import { createClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-//PATCH
+// Update a note
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  console.log('PATCH /api/note/', params.id, 'called');
   try {
     const { id } = params;
     const { content } = await req.json();
 
-    if (!content || typeof content !== 'string' || !content.trim()) {
+    if (!content?.trim()) {
+      console.log('Invalid content: empty');
       return NextResponse.json({ error: 'Content is required and must be a non-empty string' }, { status: 400 });
     }
 
-    // Update the note in the database
-    // Example with Prisma; adjust for your database
-    const updatedNote = await db.note.update({
-      where: { id },
-      data: { content: content.trim() },
-    });
+    const supabase = await createClient();
+    console.log('Supabase client initialized');
 
-    return NextResponse.json(updatedNote, { status: 200 });
+    const { data, error } = await supabase
+      .from('notes')
+      .update({ content: content.trim() })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase update error:', error);
+      return NextResponse.json({ error: 'Failed to update note: ' + error.message }, { status: 500 });
+    }
+
+    console.log('Note updated successfully:', data);
+    return NextResponse.json(data, { status: 200 });
   } catch (error) {
-    console.error('Error updating note:', error);
-    return NextResponse.json({ error: 'Failed to update note' }, { status: 500 });
+    console.error('API route error:', error);
+    return NextResponse.json(
+      { error: 'Server error: ' + (error instanceof Error ? error.message : 'Unknown error') },
+      { status: 500 }
+    );
   }
 }
-//DE:LET
+
+// Delete a note
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   console.log('DELETE /api/note/', params.id, 'called');
   try {

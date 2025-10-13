@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
+// Create a new note
 export async function POST(request: Request) {
   console.log('POST /api/note called');
   try {
@@ -23,21 +24,47 @@ export async function POST(request: Request) {
     const supabase = await createClient();
     console.log('Supabase client initialized');
 
-    const { error: testError } = await supabase.from('notes').select('id').limit(1);
-    if (testError) {
-      console.error('Supabase connection error:', testError);
-      return NextResponse.json({ error: 'Database connection failed: ' + testError.message }, { status: 500 });
-    }
-
-    const { error } = await supabase.from('notes').insert([{ content: content.trim() }]);
+    const { data, error } = await supabase
+      .from('notes')
+      .insert([{ content: content.trim() }])
+      .select() // Return the inserted note
+      .single();
 
     if (error) {
       console.error('Supabase insert error:', error);
       return NextResponse.json({ error: 'Failed to add note: ' + error.message }, { status: 500 });
     }
 
-    console.log('Note inserted successfully');
-    return NextResponse.json({ message: 'Note added' }, { status: 200 });
+    console.log('Note inserted successfully:', data);
+    return NextResponse.json(data, { status: 201 }); // Return the new note
+  } catch (err) {
+    console.error('API route error:', err);
+    return NextResponse.json(
+      { error: 'Server error: ' + (err instanceof Error ? err.message : 'Unknown error') },
+      { status: 500 }
+    );
+  }
+}
+
+// Fetch all notes
+export async function GET() {
+  console.log('GET /api/note called');
+  try {
+    const supabase = await createClient();
+    console.log('Supabase client initialized');
+
+    const { data, error } = await supabase
+      .from('notes')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase fetch error:', error);
+      return NextResponse.json({ error: 'Failed to fetch notes: ' + error.message }, { status: 500 });
+    }
+
+    console.log('Notes fetched successfully:', data);
+    return NextResponse.json(data || [], { status: 200 });
   } catch (err) {
     console.error('API route error:', err);
     return NextResponse.json(
