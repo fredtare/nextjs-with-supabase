@@ -1,32 +1,38 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
 
+// Update a mech
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
     const { name, variant, description } = await req.json();
 
-    if (!name?.trim() || !variant?.trim() || !description?.trim()) {
-      return NextResponse.json({ error: 'All fields are required and must be non-empty' }, { status: 400 });
+    if (!name?.trim() && !variant?.trim() && !description?.trim()) {
+      console.log('Invalid input: At least one field must be non-empty');
+      return NextResponse.json({ error: 'At least one field must be provided' }, { status: 400 });
     }
 
     const supabase = createClient();
+    console.log('Supabase client initialized');
+
+    const updateData: { name?: string; variant?: string; description?: string } = {};
+    if (name?.trim()) updateData.name = name.trim();
+    if (variant?.trim()) updateData.variant = variant.trim();
+    if (description?.trim()) updateData.description = description.trim();
+
     const { data, error } = await supabase
       .from('mechs')
-      .update({ 
-        name: name.trim(), 
-        variant: variant.trim(), 
-        description: description.trim() 
-      })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
 
     if (error) {
-      console.error('Error updating entry:', error);
-      return NextResponse.json({ error: 'Failed to update entry' }, { status: 500 });
+      console.error('Supabase update error:', error);
+      return NextResponse.json({ error: 'Failed to update entry: ' + error.message }, { status: 500 });
     }
 
+    console.log('Mech updated successfully:', data);
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error('Unexpected error:', error);
@@ -34,21 +40,22 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
+// Delete a mech
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
 
     const supabase = createClient();
-    const { error } = await supabase
-      .from('mechs')
-      .delete()
-      .eq('id', id);
+    console.log('Supabase client initialized');
+
+    const { error } = await supabase.from('mechs').delete().eq('id', id);
 
     if (error) {
-      console.error('Error deleting entry:', error);
-      return NextResponse.json({ error: 'Failed to delete entry' }, { status: 500 });
+      console.error('Supabase delete error:', error);
+      return NextResponse.json({ error: 'Failed to delete entry: ' + error.message }, { status: 500 });
     }
 
+    console.log('Mech deleted successfully');
     return NextResponse.json({ message: 'Entry deleted successfully' }, { status: 200 });
   } catch (error) {
     console.error('Unexpected error:', error);
