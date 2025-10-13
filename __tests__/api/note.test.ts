@@ -1,6 +1,6 @@
 // __tests__/api/note.test.ts
 import { createClient } from '@/lib/supabase/server';
-import { POST, GET, PATCH, DELETE } from '../nextjs-with-supabase/app/notes';
+import { POST, GET, PATCH, DELETE } from './app/notes/api/routes';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Mock Next.js cookies
