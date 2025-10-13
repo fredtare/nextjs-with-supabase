@@ -1,6 +1,30 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
+//PATCH
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const { id } = params;
+    const { content } = await req.json();
+
+    if (!content || typeof content !== 'string' || !content.trim()) {
+      return NextResponse.json({ error: 'Content is required and must be a non-empty string' }, { status: 400 });
+    }
+
+    // Update the note in the database
+    // Example with Prisma; adjust for your database
+    const updatedNote = await db.note.update({
+      where: { id },
+      data: { content: content.trim() },
+    });
+
+    return NextResponse.json(updatedNote, { status: 200 });
+  } catch (error) {
+    console.error('Error updating note:', error);
+    return NextResponse.json({ error: 'Failed to update note' }, { status: 500 });
+  }
+}
+//DE:LET
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   console.log('DELETE /api/note/', params.id, 'called');
   try {
