@@ -1,4 +1,3 @@
-//kasutatud llmoboti abi
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -23,6 +22,14 @@ export default function FlashcardClient({ initialFlashcards }: FlashcardClientPr
   const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState({ correct: 0, incorrect: 0 });
+
+  // Calculate percentage of correct answers
+  const calculateCorrectPercentage = () => {
+    const total = stats.correct + stats.incorrect;
+    if (total === 0) return 'N/A';
+    return ((stats.correct / total) * 100).toFixed(2) + '%';
+  };
 
   // Select a random flashcard on mount or when flashcards change
   useEffect(() => {
@@ -38,6 +45,17 @@ export default function FlashcardClient({ initialFlashcards }: FlashcardClientPr
     const randomIndex = Math.floor(Math.random() * flashcards.length);
     setCurrentFlashcard(flashcards[randomIndex]);
     setShowAnswer(false);
+  };
+
+  // Handle Correct/Incorrect clicks
+  const handleCorrect = () => {
+    setStats((prev) => ({ ...prev, correct: prev.correct + 1 }));
+    pickRandomFlashcard();
+  };
+
+  const handleIncorrect = () => {
+    setStats((prev) => ({ ...prev, incorrect: prev.incorrect + 1 }));
+    pickRandomFlashcard();
   };
 
   // Add a new flashcard
@@ -154,6 +172,13 @@ export default function FlashcardClient({ initialFlashcards }: FlashcardClientPr
     <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">Flashcard App</h1>
 
+      {/* Statistics */}
+      <div className="mb-6 p-4 bg-gray-100 rounded-lg text-center">
+        <p className="text-lg font-semibold text-gray-800">
+          Stats: Correct: {stats.correct}, Incorrect: {stats.incorrect}, Total: {stats.correct + stats.incorrect}, Correct %: {calculateCorrectPercentage()}
+        </p>
+      </div>
+
       {/* Current Flashcard Display */}
       <div className="mb-8 bg-white shadow-lg rounded-lg p-6">
         {currentFlashcard ? (
@@ -164,13 +189,33 @@ export default function FlashcardClient({ initialFlashcards }: FlashcardClientPr
             {showAnswer && (
               <p className="text-gray-600 mb-4">Answer: {currentFlashcard.answer}</p>
             )}
-            <button
-              onClick={() => setShowAnswer(!showAnswer)}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
-              disabled={loading}
-            >
-              {showAnswer ? 'Hide Answer' : 'Show Answer'}
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setShowAnswer(!showAnswer)}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
+                disabled={loading}
+              >
+                {showAnswer ? 'Hide Answer' : 'Show Answer'}
+              </button>
+              {showAnswer && (
+                <>
+                  <button
+                    onClick={handleCorrect}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
+                    disabled={loading}
+                  >
+                    Correct
+                  </button>
+                  <button
+                    onClick={handleIncorrect}
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
+                    disabled={loading}
+                  >
+                    Incorrect
+                  </button>
+                </>
+              )}
+            </div>
             <button
               onClick={pickRandomFlashcard}
               className="w-full mt-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
