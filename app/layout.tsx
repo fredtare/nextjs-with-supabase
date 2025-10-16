@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
+import { MantineProvider } from '@mantine/core';
+import '@mantine/core/styles.css';
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -27,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
+        <MantineProvider>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -35,6 +38,7 @@ export default function RootLayout({
         >
           {children}
         </ThemeProvider>
+        </MantineProvider>
       </body>
     </html>
   );
