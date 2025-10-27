@@ -1,8 +1,9 @@
+console.log("SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  console.log('PATCH /api/flashcard/', params.id, 'called');
+  console.log('PATCH api/flashcard/${id}', params.id, 'called');
   try {
     const { id } = params;
     const { question, answer } = await req.json();
@@ -39,7 +40,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  console.log('DELETE /api/flashcard/', params.id, 'called');
+  console.log('DELETE /flashcard/api/${id}', params.id, 'called');
   try {
     const supabase = await createClient();
     console.log('Supabase client initialized');

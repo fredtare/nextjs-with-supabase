@@ -69,7 +69,7 @@ export default function FlashcardClient({ initialFlashcards }: FlashcardClientPr
     setError(null);
 
     try {
-      const response = await fetch('/api/flashcard', {
+      const response = await fetch('flashcards/api/flashcard/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: newQuestion.trim(), answer: newAnswer.trim() }),
@@ -105,7 +105,7 @@ export default function FlashcardClient({ initialFlashcards }: FlashcardClientPr
     setError(null);
 
     try {
-      const response = await fetch(`/api/flashcard/${id}`, {
+      const response = await fetch(`flashcards/api/flashcard/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: question.trim(), answer: answer.trim() }),
@@ -137,7 +137,8 @@ export default function FlashcardClient({ initialFlashcards }: FlashcardClientPr
     setError(null);
 
     try {
-      const response = await fetch(`/api/flashcard/${id}`, { method: 'DELETE' });
+      const response = await fetch(`flashcards/api/flashcard/${id}`, 
+        { method: 'DELETE' });
 
       if (!response.ok) {
         const data = await response.json();

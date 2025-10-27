@@ -1,8 +1,9 @@
+console.log("SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
-  console.log('POST /api/flashcard called');
+  console.log('POST /flashcard/api called');
   try {
     const text = await request.text();
     console.log('Request body:', text);
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
-  console.log('GET /api/flashcard called');
+  console.log('GET /flashcard/api called');
   try {
     const supabase = await createClient();
     console.log('Supabase client initialized');
