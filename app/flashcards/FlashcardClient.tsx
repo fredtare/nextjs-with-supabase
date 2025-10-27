@@ -23,6 +23,8 @@ export default function FlashcardClient({ initialFlashcards }: FlashcardClientPr
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({ correct: 0, incorrect: 0 });
+  const [displayMode, setDisplayMode] = useState<'random' | 'ordered'>('random'); // New state for display mode
+  const [currentIndex, setCurrentIndex] = useState(0); // Track current index for ordered mode
 
   // Calculate percentage of correct answers
   const calculateCorrectPercentage = () => {
@@ -31,31 +33,62 @@ export default function FlashcardClient({ initialFlashcards }: FlashcardClientPr
     return ((stats.correct / total) * 100).toFixed(2) + '%';
   };
 
-  // Select a random flashcard on mount or when flashcards change
+  // Select a flashcard based on display mode
   useEffect(() => {
-    pickRandomFlashcard();
-  }, [flashcards]);
-
-  const pickRandomFlashcard = () => {
     if (flashcards.length === 0) {
       setCurrentFlashcard(null);
       setShowAnswer(false);
+      setCurrentIndex(0);
       return;
     }
+    if (displayMode === 'random') {
+      pickRandomFlashcard();
+    } else {
+      setCurrentFlashcard(flashcards[currentIndex]);
+      setShowAnswer(false);
+    }
+  }, [flashcards, displayMode, currentIndex]);
+
+  const pickRandomFlashcard = () => {
+    if (flashcards.length === 0) return;
     const randomIndex = Math.floor(Math.random() * flashcards.length);
     setCurrentFlashcard(flashcards[randomIndex]);
+    setShowAnswer(false);
+  };
+
+  const pickNextOrderedFlashcard = () => {
+    if (flashcards.length === 0) return;
+    const nextIndex = (currentIndex + 1) % flashcards.length;
+    setCurrentIndex(nextIndex);
+    setCurrentFlashcard(flashcards[nextIndex]);
     setShowAnswer(false);
   };
 
   // Handle Correct/Incorrect clicks
   const handleCorrect = () => {
     setStats((prev) => ({ ...prev, correct: prev.correct + 1 }));
-    pickRandomFlashcard();
+    if (displayMode === 'random') {
+      pickRandomFlashcard();
+    } else {
+      pickNextOrderedFlashcard();
+    }
   };
 
   const handleIncorrect = () => {
     setStats((prev) => ({ ...prev, incorrect: prev.incorrect + 1 }));
-    pickRandomFlashcard();
+    if (displayMode === 'random') {
+      pickRandomFlashcard();
+    } else {
+      pickNextOrderedFlashcard();
+    }
+  };
+
+  // Toggle between random and ordered modes
+  const toggleDisplayMode = () => {
+    setDisplayMode((prev) => (prev === 'random' ? 'ordered' : 'random'));
+    if (displayMode === 'random') {
+      setCurrentIndex(0); // Reset to first card when switching to ordered
+    }
   };
 
   // Add a new flashcard
@@ -84,7 +117,11 @@ export default function FlashcardClient({ initialFlashcards }: FlashcardClientPr
       setFlashcards([data, ...flashcards]);
       setNewQuestion('');
       setNewAnswer('');
-      pickRandomFlashcard();
+      if (displayMode === 'random') {
+        pickRandomFlashcard();
+      } else {
+        setCurrentIndex(0); // Reset to first card in ordered mode
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to add flashcard';
       setError(errorMessage);
@@ -145,9 +182,17 @@ export default function FlashcardClient({ initialFlashcards }: FlashcardClientPr
         throw new Error(data.error || 'Failed to delete flashcard');
       }
 
-      setFlashcards(flashcards.filter((fc) => fc.id !== id));
+      const newFlashcards = flashcards.filter((fc) => fc.id !== id);
+      setFlashcards(newFlashcards);
       if (currentFlashcard?.id === id) {
-        pickRandomFlashcard();
+        if (displayMode === 'random') {
+          pickRandomFlashcard();
+        } else {
+          // Adjust index if necessary
+          const newIndex = currentIndex >= newFlashcards.length ? 0 : currentIndex;
+          setCurrentIndex(newIndex);
+          setCurrentFlashcard(newFlashcards[newIndex] || null);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete flashcard');
@@ -173,11 +218,18 @@ export default function FlashcardClient({ initialFlashcards }: FlashcardClientPr
     <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">Flashcard App</h1>
 
-      {/* Statistics */}
+      {/* Statistics and Mode Toggle */}
       <div className="mb-6 p-4 bg-gray-100 rounded-lg text-center">
-        <p className="text-lg font-semibold text-gray-800">
+        <p className="text-lg font-semibold text-gray-800 mb-2">
           Stats: Correct: {stats.correct}, Incorrect: {stats.incorrect}, Total: {stats.correct + stats.incorrect}, Correct %: {calculateCorrectPercentage()}
         </p>
+        <button
+          onClick={toggleDisplayMode}
+          className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
+          disabled={loading}
+        >
+          Switch to {displayMode === 'random' ? 'Ordered' : 'Random'} Mode
+        </button>
       </div>
 
       {/* Current Flashcard Display */}
@@ -218,7 +270,7 @@ export default function FlashcardClient({ initialFlashcards }: FlashcardClientPr
               )}
             </div>
             <button
-              onClick={pickRandomFlashcard}
+              onClick={displayMode === 'random' ? pickRandomFlashcard : pickNextOrderedFlashcard}
               className="w-full mt-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
               disabled={loading}
             >
